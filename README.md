@@ -7,13 +7,15 @@ ML libraries. As of now only colloborative filtering (item similarities) is supp
 How to use this
 ===============
 
-<code>REGISTER pigml.jar;<code>
-<code>DEFINE SIM pig.ml.reco.cf.udf.SIM();</code>
+<code>
+REGISTER pigml.jar;<br>
+DEFINE SIM pig.ml.reco.cf.udf.SIM();<br>
 
-<code>userData = LOAD 'userData' Using PigStorage(',') AS (user:long, item:long, weight:long);</code>
-<code>grpdUserData1 = GROUP userData By item;</code>
-<code>grpdUserData2 = GROUP userData By item;</code>
-<code>crossedData = CROSS grpdUserData1, grpdUserData2;</code>
-<code>grpd = GROUP crossedData ALL;</code>
-<code>cosineSim = FOREACH grpd GENERATE pig.ml.reco.cf.udf.SIM(crossedData, 2, 'COSINE');</code>
-<code>STORE cosineSim INTO 'itemSim';</code>
+userData = LOAD 'userData' Using PigStorage(',') AS (user:long, item:long, weight:long);<br>
+grpdUserData1 = GROUP userData By item;<br>
+grpdUserData2 = GROUP userData By item;<br>
+crossedData = CROSS grpdUserData1, grpdUserData2;<br>
+grpd = GROUP crossedData ALL;<br>
+cosineSim = FOREACH grpd GENERATE pig.ml.reco.cf.udf.SIM(crossedData, 2, 'COSINE');<br>
+STORE cosineSim INTO 'itemSim';<br>
+</code>
