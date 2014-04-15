@@ -1,0 +1,21 @@
+<configuration>
+
+  <property name="PIG_HOME" value="/tmp" />
+
+  <appender name="RFA" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${PIG_HOME}/pigml.log</file>
+    
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    	<fileNamePattern>pigml.%d{yyyy-MM-dd}.log</fileNamePattern>
+    	<maxHistory>30</maxHistory>
+    </rollingPolicy>
+    
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="debug">
+    <appender-ref ref="RFA" />
+  </root>
+</configuration>
