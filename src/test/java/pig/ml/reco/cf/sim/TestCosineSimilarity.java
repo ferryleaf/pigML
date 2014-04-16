@@ -31,10 +31,8 @@ public class TestCosineSimilarity {
 		
 		Tuple tuple = TupleFactory.getInstance().newTuple(3);
 		tuple.set(0, bag);
-		tuple.set(1, 2);
-		tuple.set(2, "COSINE");
 		
-		SIM sim = new SIM();
+		SIM sim = new SIM("2", "COSINE");
 		DataBag prodSimilarities = sim.exec(tuple);
 		System.out.println(prodSimilarities);
 	}
