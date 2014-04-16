@@ -10,7 +10,7 @@ REGISTER pigML.jar;
 
 -- arg1 : Compute similarity if there are at least 2 users, who rated both the products.
 -- arg2 : Similarity class to be used.
-DEFINE SIM pig.ml.reco.cf.udf.SIM(2, 'COSINE');
+DEFINE SIM pig.ml.reco.cf.udf.SIM('2', 'COSINE');
 
 userData = LOAD 'data' Using PigStorage(',') AS (user:long, item:chararray, weight:double);
 grpdUserData1 = GROUP userData By item;
