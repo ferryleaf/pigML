@@ -1,4 +1,4 @@
-# pigml
+# pigML
 
 Machine Library Using Pig. The intention of this library is reduce the complexity of using
 ML libraries. As of now only colloborative filtering (item similarities) is supported.
@@ -6,7 +6,7 @@ ML libraries. As of now only colloborative filtering (item similarities) is supp
 ## How to use this
 
 ```
-REGISTER pigml.jar;
+REGISTER pigML.jar;
 
 -- arg1 : Compute similarity if there are at least 2 users, who rated both the products.
 -- arg2 : Similarity class to be used.
