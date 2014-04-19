@@ -3,7 +3,6 @@ package pig.ml.reco.cf.udf;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -34,48 +33,8 @@ public class SIM extends AccumulatorEvalFunc<DataBag> {
   private Similarity similarity;
   private int threshold;
   
-  DataBag prodSimilarities = BagFactory.getInstance().newSortedBag(bagComparator1);
+  private DataBag prodSimilarities = BagFactory.getInstance().newDistinctBag();
   
-  static private final Comparator<Tuple> bagComparator1 =  new Comparator<Tuple>() {
-      @Override
-      public int compare(Tuple o1, Tuple o2) {
-        try {
-          Object p11 = o1.get(0);
-          Object p12 = o1.get(1);
-          
-          Object p21 = o2.get(0);
-          Object p22 = o2.get(1);
-          
-          if(p11.equals(p22) && p12.equals(p21)) {
-            return 0;
-          }
-        } catch (ExecException e) {
-          logger.error(e.getMessage(), e);
-        }
-        return -1;
-      }
-    };
-    
-    static private final Comparator<Tuple> bagComparator2 =  new Comparator<Tuple>() {
-      @Override
-      public int compare(Tuple o1, Tuple o2) {
-        try {
-          Object p11 = o1.get(0);
-          Object p12 = o1.get(2);
-          
-          Object p21 = o2.get(0);
-          Object p22 = o2.get(2);
-          
-          if(p11.equals(p22) && p12.equals(p21)) {
-            return 0;
-          }
-        } catch (ExecException e) {
-          logger.error(e.getMessage(), e);
-        }
-        return -1;
-      }
-    };
-    
   public SIM(String threshold, String similarityClass) throws ExecException {
     this.threshold = Integer.parseInt(threshold);
 
@@ -105,7 +64,7 @@ public class SIM extends AccumulatorEvalFunc<DataBag> {
         Object product1 = inputTuple.get(0);
         Object product2 = inputTuple.get(2);
 
-        if (product1.equals(product2)) {
+        if (DataType.compare(product1, product2) == 0) {
           continue;
         }
 
@@ -184,7 +143,7 @@ public class SIM extends AccumulatorEvalFunc<DataBag> {
     }
   }
   
-  DataBag intermediateBag = BagFactory.getInstance().newSortedBag(bagComparator2);
+  DataBag intermediateBag = BagFactory.getInstance().newDistinctBag();
 
   @Override
   public void accumulate(Tuple input) throws IOException {
@@ -192,17 +151,26 @@ public class SIM extends AccumulatorEvalFunc<DataBag> {
       Object object = input.get(0);
       Preconditions.checkArgument(object instanceof DataBag);
       DataBag inputBag = (DataBag) object;
-
+      
+      TupleFactory tf = TupleFactory.getInstance();
+      Tuple newTuple = null;
+      
       for (Tuple inputTuple : inputBag) {
         Preconditions.checkArgument(inputTuple.size() == 4);
 
-        Object product1 = inputTuple.get(0);
-        Object product2 = inputTuple.get(2);
-
-        if (product1.equals(product2)) {
+        int compare = DataType.compare(inputTuple.get(0), inputTuple.get(2));
+        if (compare == 0) {
           continue;
+        } else if (compare > 0) {
+          newTuple = tf.newTuple(4);
+          newTuple.set(0, inputTuple.get(2));
+          newTuple.set(1, inputTuple.get(3));
+          newTuple.set(2, inputTuple.get(0));
+          newTuple.set(3, inputTuple.get(1));
+        } else {
+          newTuple = tf.newTuple(inputTuple.getAll());
         }
-        intermediateBag.add(inputTuple);
+        intermediateBag.add(newTuple);
       }
     } catch(Exception e) {
       logger.error(e.getMessage(), e);
@@ -222,12 +190,9 @@ public class SIM extends AccumulatorEvalFunc<DataBag> {
       Multimap<Object, Number> userWeightMap = ArrayListMultimap.create();
 
       for (Tuple inputTuple : intermediateBag) {
-        Object product1 = inputTuple.get(0);
-        Object product2 = inputTuple.get(2);
-
         tupleSimilarity = TupleFactory.getInstance().newTuple(3);
-        tupleSimilarity.set(0, product1);
-        tupleSimilarity.set(1, product2);
+        tupleSimilarity.set(0, inputTuple.get(0));
+        tupleSimilarity.set(1, inputTuple.get(2));
         tupleSimilarity.set(2, 0.0d);
 
         Object dataBagObj1 = inputTuple.get(1);
